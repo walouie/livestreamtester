@@ -7,25 +7,10 @@
     * { margin: 0; padding: 0; overflow: hidden; }
     html, body { width: 100%; height: 100%; background: #000; }
     #player { width: 100%; height: 100%; }
-    #unmute-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999;
-      padding: 15px 30px;
-      font-size: 18px;
-      background: #9147ff;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    #unmute-btn:hover { background: #7c2ff0; }
   </style>
 </head>
 <body>
   <div id="player"></div>
-  <button id="unmute-btn" onclick="unmute()">🔊 Click to Unmute</button>
   <script src="https://player.twitch.tv/js/embed/v1.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
@@ -35,21 +20,26 @@
       channel: channel,
       parent: [window.location.hostname],
       autoplay: true,
-      muted: true,
+      muted: false,
       width: "100%",
       height: "100%"
     });
 
-    function unmute() {
+    // Repeatedly try to unmute every 2 seconds for the first 30 seconds
+    let attempts = 0;
+    const unmuteInterval = setInterval(() => {
       player.setMuted(false);
       player.setVolume(1.0);
-      document.getElementById('unmute-btn').style.display = 'none';
-    }
+      attempts++;
+      if (attempts >= 15) {
+        clearInterval(unmuteInterval);
+      }
+    }, 2000);
 
-    // Auto-hide button after 30 seconds
-    setTimeout(() => {
-      document.getElementById('unmute-btn').style.display = 'none';
-    }, 30000);
+    player.addEventListener(Twitch.Player.PLAYING, () => {
+      player.setMuted(false);
+      player.setVolume(1.0);
+    });
   </script>
 </body>
 </html>
