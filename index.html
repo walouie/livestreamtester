@@ -10,19 +10,29 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 </head>
 <body>
-  <video id="video" autoplay></video>
+  <video id="video" autoplay muted playsinline></video>
   <script>
     var params = new URLSearchParams(window.location.search);
-    var src = params.get('src');
+    var src = params.get('src') || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
     var video = document.getElementById('video');
+
     if (Hls.isSupported()) {
       var hls = new Hls();
       hls.loadSource(src);
       hls.attachMedia(video);
+
       hls.on(Hls.Events.MANIFEST_PARSED, function() {
-        video.muted = false;
-        video.volume = 1.0;
-        video.play();
+        video.muted = true;
+        video.play().then(function() {
+          video.muted = false;
+          video.volume = 1.0;
+        }).catch(function(e) {
+          console.log('Autoplay with sound blocked, playing muted');
+        });
+      });
+
+      hls.on(Hls.Events.ERROR, function(event, data) {
+        console.log('HLS Error:', data);
       });
     }
   </script>
