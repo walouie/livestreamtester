@@ -6,22 +6,36 @@
   <style>
     * { margin: 0; padding: 0; overflow: hidden; }
     html, body { width: 100%; height: 100%; background: #000; }
-    iframe { width: 100%; height: 100%; border: none; }
+    #player { width: 100%; height: 100%; }
   </style>
 </head>
 <body>
-  <iframe id="player" allowfullscreen></iframe>
+  <div id="player"></div>
+  <script src="https://player.twitch.tv/js/embed/v1.js"></script>
   <script>
     const params = new URLSearchParams(window.location.search);
     const channel = params.get('channel') || 'lofigirl';
-    const parent = window.location.hostname;
-    const iframe = document.getElementById('player');
-    iframe.src = `https://player.twitch.tv/?channel=${channel}&parent=${parent}&autoplay=true&muted=true`;
-    
-    // Attempt to unmute after a delay
-    setTimeout(() => {
-      iframe.contentWindow.postMessage({ type: 'unmute' }, '*');
-    }, 5000);
+
+    const player = new Twitch.Player("player", {
+      channel: channel,
+      parent: [window.location.hostname],
+      autoplay: true,
+      muted: false,
+      width: "100%",
+      height: "100%"
+    });
+
+    // Backup: try to unmute after player is ready
+    player.addEventListener(Twitch.Player.READY, () => {
+      player.setMuted(false);
+      player.setVolume(1.0);
+    });
+
+    // Extra backup: try again after playing starts
+    player.addEventListener(Twitch.Player.PLAYING, () => {
+      player.setMuted(false);
+      player.setVolume(1.0);
+    });
   </script>
 </body>
 </html>
